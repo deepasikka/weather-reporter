@@ -1,6 +1,6 @@
 package main.java.utils;
 
-public class StringUtils {
+public class Comparator {
 
 
 }
