@@ -1,7 +1,8 @@
 package main.java.api;
 
 import main.java.constants.Constants;
-import org.apache.http.Header;
+import main.java.modal.Modal;
+import main.java.utils.ValueParser;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -11,11 +12,11 @@ import org.apache.http.util.EntityUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.xml.ws.http.HTTPException;
 
 public class APIWeatherForecast {
     private String url;
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
+    static Modal modal = new Modal();
 
     @BeforeClass
     public void init(){
@@ -34,6 +35,9 @@ public class APIWeatherForecast {
                HttpEntity entity = response.getEntity();
                if (entity != null) {
                    String result = EntityUtils.toString(entity);
+                   modal.setHumidity(ValueParser.getValue(result,"humidity"));
+                   modal.setTemperature_degree(ValueParser.getValue(result,"temp"));
+
 
                }
            }else{
@@ -46,4 +50,10 @@ public class APIWeatherForecast {
             e.printStackTrace();
         }
     }
+
+
+    public Modal getModal(){
+        return modal;
+    }
+
 }

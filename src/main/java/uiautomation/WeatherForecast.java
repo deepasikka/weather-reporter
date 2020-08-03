@@ -1,8 +1,7 @@
 package main.java.uiautomation;
 
-import com.sun.org.apache.bcel.internal.Const;
 import main.java.constants.Constants;
-import main.java.modal.UIModal;
+import main.java.modal.Modal;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -17,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class WeatherForecast {
 
     static WebDriver driver;
-    static UIModal modal = new UIModal();
+    static Modal modal = new Modal();
     @BeforeClass
     public static void open_website(){
 
@@ -41,28 +40,23 @@ public class WeatherForecast {
         for(int i=0; i<list.size(); i++){
             String weather_parameter = list.get(i).getText();
 
-            if(weather_parameter.split(":")[0].equals("Condition ")){
-                modal.setCondition(weather_parameter.split(":")[1].trim());
-            }else
-            if(weather_parameter.split(":")[0].equals("Wind")){
-                modal.setWind(weather_parameter.split(":")[1].trim());
-            }else
             if(weather_parameter.split(":")[0].equals("Humidity")){
                 modal.setHumidity(weather_parameter.split(":")[1].trim());
             }else
             if(weather_parameter.split(":")[0].equals("Temp in Degrees")){
                 modal.setTemperature_degree(weather_parameter.split(":")[1].trim());
-            }else
-            if(weather_parameter.split(":")[0].equals("Temp in Fahrenheit")){
-                modal.setTemperature_fah(weather_parameter.split(":")[1].trim());
             }
 
         }
-        System.out.println(modal.toString());
+
     }
 
     @AfterClass
     public static void closing_browser(){
         driver.quit();
+    }
+
+    public Modal getModal(){
+        return modal;
     }
 }
