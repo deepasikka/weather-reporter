@@ -2,51 +2,70 @@ package main.java.uiautomation;
 
 import main.java.constants.Constants;
 import main.java.modal.Modal;
+import main.java.pages.HomePage;
+import main.java.pages.WeatherPage;
+import main.java.utils.PropertyReader;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class WeatherForecast {
-    static Logger log = Logger.getLogger(WeatherForecast.class);
-    static WebDriver driver;
-    static Modal modal = new Modal();
+     Logger log = Logger.getLogger(WeatherForecast.class);
+     WebDriver driver;
+     Modal modal = new Modal();
+     HomePage homePage;
+     WeatherPage weatherPage;
+     WebDriverWait wait;
+
     @BeforeClass
-    public static void open_website(){
-
-        System.setProperty("webdriver.chrome.driver", Constants.DRIVER_PATH);
-        driver = new ChromeDriver();
+    public  void open_website() throws IOException {
+        log.info("checking os");
+        String pathToDriver = null;
+        if(System.getProperty("os.name").toLowerCase().indexOf("win")>=0){
+            pathToDriver = Constants.DRIVER_PATH_WINDOWS;
+        }else if(System.getProperty("os.name").toLowerCase().indexOf("mac")>=0){
+            pathToDriver = Constants.DRIVER_PATH_MAC;
+        }
+        System.setProperty("webdriver.chrome.driver", pathToDriver);
         log.info("Initializing chrome browser");
-        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-
+        driver = new ChromeDriver();
+        //driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
         driver.manage().window().maximize();
         log.info("Maximizing browser");
         driver.get(Constants.UI_URL);
         log.info("Navigating to "+Constants.UI_URL);
+        wait = new WebDriverWait(driver,5);
     }
 
-    @Test
-    public static void open_weather_section(){
-        driver.findElement(By.id("h_sub_menu")).click();
-        log.info("Clicking on 3 dot menu");
-        driver.findElement(By.linkText("WEATHER")).click();
-        log.info("Clicking on weather");
-        driver.findElement(By.id("searchBox")).sendKeys(Constants.CITY);
-        log.info("Searching for "+Constants.CITY);
-        driver.findElement(By.id("Chandigarh")).click();
-        driver.findElement(By.xpath("//div[@class='outerContainer' and @title='Chandigarh']")).click();
-        log.info("Fetching all weather details for "+Constants.CITY);
-        List<WebElement> list = driver.findElements(By.xpath("//span[@class='heading']"));
-        for(int i=0; i<list.size(); i++){
-            String weather_parameter = list.get(i).getText();
 
+    @Test
+    public void get_weather()  {
+        homePage = new HomePage(driver);
+        weatherPage = new WeatherPage(driver);
+        homePage.clickOnDotMenu();
+        wait.until(ExpectedConditions.visibilityOf(homePage.weatherButton));
+        homePage.clickOnWeatherButton();
+        wait.until(ExpectedConditions.visibilityOf(weatherPage.searchBox));
+        weatherPage.enterCityName(Constants.CITY);
+        weatherPage.selectCity();
+        wait.until(ExpectedConditions.visibilityOf(weatherPage.weatherInfoForCity));
+        weatherPage.clickOnWeatherInfoForSelectedCity();
+        List<WebElement> weatherInfo = weatherPage.getWeatherInfoList();
+        for(int i=0; i<weatherInfo.size(); i++){
+            String weather_parameter = weatherInfo.get(i).getText();
             if(weather_parameter.split(":")[0].equals("Humidity")){
                 modal.setHumidity(weather_parameter.split(":")[1].trim());
                 log.info("Getting humidity value ");
@@ -55,13 +74,11 @@ public class WeatherForecast {
                 modal.setTemperature_degree(weather_parameter.split(":")[1].trim());
                 log.info("Getting Temperature value in Degrees");
             }
-
         }
-
     }
 
     @AfterClass
-    public static void closing_browser(){
+    public  void closing_browser(){
         driver.quit();
         log.info("Closing Browser");
     }
